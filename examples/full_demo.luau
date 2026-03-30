@@ -14,7 +14,7 @@
     Place in a Roblox script and require the library path.
 ]]
 
-local AcrylicUI = require(path.to.AcrylicUI) -- Replace with your actual path
+local AcrylicUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/ktrodev/Arcylic/refs/heads/main/src.lua.txt"))()
 
 -- ============================================================================
 -- Create Window
