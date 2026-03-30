@@ -671,7 +671,7 @@ function Library:GetThemeNames()
 end
 
 function Library:SetBackgroundImage(imageId, transparency)
-    transparency = transparency or 0.85
+    transparency = transparency or 0.3
     
     if self._bgImage then
         self._bgImage:Destroy()
@@ -679,6 +679,11 @@ function Library:SetBackgroundImage(imageId, transparency)
     end
     
     if not imageId or imageId == "" then
+        -- Restore original container opacity
+        if self.container then
+            CreateTween(self.container, { BackgroundTransparency = 0.05 }, animationspeed.Normal)
+        end
+        self._bgImageUrl = nil
         return
     end
     
@@ -705,7 +710,6 @@ function Library:SetBackgroundImage(imageId, transparency)
             elseif getsynasset then
                 return getsynasset(fileName)
             else
-                -- Some executors support direct http URLs in Image property
                 return imageId
             end
         end)
@@ -713,14 +717,13 @@ function Library:SetBackgroundImage(imageId, transparency)
         if success and result then
             resolvedImage = result
         else
-            -- Fallback: try direct URL (works on some executors)
             resolvedImage = imageId
-            self:Notify({
-                Title = "Background",
-                Description = "Using direct URL (may not work on all executors)",
-                Duration = 3
-            })
         end
+    end
+    
+    -- Make container background more transparent so image shows through
+    if self.container then
+        CreateTween(self.container, { BackgroundTransparency = 0.6 }, animationspeed.Normal)
     end
     
     self._bgImage = CreateInstance("ImageLabel", {
@@ -735,9 +738,6 @@ function Library:SetBackgroundImage(imageId, transparency)
         Parent = self.container
     })
     CreateCorner(self._bgImage, 5)
-    
-    -- Send to back
-    self._bgImage.ZIndex = 0
     
     -- Store the original URL for opacity changes
     self._bgImageUrl = imageId

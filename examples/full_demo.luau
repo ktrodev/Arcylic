@@ -437,7 +437,7 @@ themeTab:CreateSlider({
     Name = "Image Opacity",
     Min = 0,
     Max = 100,
-    Default = 85,
+    Default = 30,
     Callback = function(value)
         if window._bgImage then
             window._bgImage.ImageTransparency = value / 100
