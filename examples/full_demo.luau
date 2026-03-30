@@ -439,9 +439,8 @@ themeTab:CreateSlider({
     Max = 100,
     Default = 85,
     Callback = function(value)
-        local imgId = bgImageBox:GetText()
-        if imgId ~= "" then
-            window:SetBackgroundImage(imgId, value / 100)
+        if window._bgImage then
+            window._bgImage.ImageTransparency = value / 100
         end
     end
 })

@@ -682,9 +682,50 @@ function Library:SetBackgroundImage(imageId, transparency)
         return
     end
     
+    -- Resolve the image source
+    local resolvedImage = imageId
+    
+    -- If it's a web URL (not rbxassetid), download and convert via executor asset system
+    if imageId:match("^https?://") then
+        local success, result = pcall(function()
+            -- Download image data
+            local imageData = game:HttpGet(imageId)
+            
+            -- Generate a unique temp filename
+            local fileName = "AcrylicBG_" .. tostring(math.random(100000, 999999)) .. ".png"
+            
+            -- Save to filesystem
+            if writefile then
+                writefile(fileName, imageData)
+            end
+            
+            -- Convert to usable asset via executor functions
+            if getcustomasset then
+                return getcustomasset(fileName)
+            elseif getsynasset then
+                return getsynasset(fileName)
+            else
+                -- Some executors support direct http URLs in Image property
+                return imageId
+            end
+        end)
+        
+        if success and result then
+            resolvedImage = result
+        else
+            -- Fallback: try direct URL (works on some executors)
+            resolvedImage = imageId
+            self:Notify({
+                Title = "Background",
+                Description = "Using direct URL (may not work on all executors)",
+                Duration = 3
+            })
+        end
+    end
+    
     self._bgImage = CreateInstance("ImageLabel", {
         Name = "BackgroundImage",
-        Image = imageId,
+        Image = resolvedImage,
         ImageTransparency = transparency,
         ScaleType = Enum.ScaleType.Crop,
         BackgroundTransparency = 1,
@@ -697,6 +738,9 @@ function Library:SetBackgroundImage(imageId, transparency)
     
     -- Send to back
     self._bgImage.ZIndex = 0
+    
+    -- Store the original URL for opacity changes
+    self._bgImageUrl = imageId
 end
 
 function Library:_SetupMobileSupport()
