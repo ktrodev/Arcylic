@@ -475,6 +475,8 @@ function Library.new(title, configFolder)
     self._configElements = {}
     self._autoSave = false
     self._currentConfig = "default"
+    self._allElements = {}
+    self._searchActive = false
     self:_CreateMainv0rtexd()
     self:_SetupKeybindListener()
     self:_SetupMobileSupport()
@@ -666,6 +668,35 @@ function Library:GetThemeNames()
     end
     table.sort(names)
     return names
+end
+
+function Library:SetBackgroundImage(imageId, transparency)
+    transparency = transparency or 0.85
+    
+    if self._bgImage then
+        self._bgImage:Destroy()
+        self._bgImage = nil
+    end
+    
+    if not imageId or imageId == "" then
+        return
+    end
+    
+    self._bgImage = CreateInstance("ImageLabel", {
+        Name = "BackgroundImage",
+        Image = imageId,
+        ImageTransparency = transparency,
+        ScaleType = Enum.ScaleType.Crop,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        ZIndex = 0,
+        Parent = self.container
+    })
+    CreateCorner(self._bgImage, 5)
+    
+    -- Send to back
+    self._bgImage.ZIndex = 0
 end
 
 function Library:_SetupMobileSupport()
@@ -872,8 +903,8 @@ function Library:_CreateContentArea()
         Name = "SectionsContainer",
         ScrollBarThickness = 0,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 0, 0, 0),
-        Size = UDim2.new(0, 165, 1, 0),
+        Position = UDim2.new(0, 0, 0, 36),
+        Size = UDim2.new(0, 165, 1, -36),
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -881,6 +912,179 @@ function Library:_CreateContentArea()
     })
     CreateListLayout(self.sectionsContainer, 0, Enum.SortOrder.LayoutOrder)
     CreatePadding(self.sectionsContainer, 5, 5, 5, 5)
+
+    -- Search bar at top of sidebar
+    local searchContainer = CreateInstance("Frame", {
+        Name = "SearchContainer",
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0, 165, 0, 36),
+        Parent = self.mainContent
+    })
+    CreatePadding(searchContainer, 5, 3, 7, 7)
+
+    local searchBox = CreateInstance("TextBox", {
+        Name = "SearchBox",
+        FontFace = f.Regular,
+        TextColor3 = c.Text,
+        PlaceholderText = "Search...",
+        PlaceholderColor3 = c.TextDark,
+        Text = "",
+        TextSize = textsize.Small,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundColor3 = c.Secondary,
+        BackgroundTransparency = 0.3,
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 1, 0),
+        ClearTextOnFocus = false,
+        Parent = searchContainer
+    })
+    CreateCorner(searchBox, 5)
+    CreateStroke(searchBox, c.Border)
+    CreatePadding(searchBox, 0, 0, 8, 8)
+
+    local searchIcon = CreateInstance("ImageLabel", {
+        Name = "SearchIcon",
+        Image = "rbxassetid://10734898355",
+        ImageColor3 = c.TextDark,
+        BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -4, 0.5, 0),
+        Size = UDim2.new(0, 14, 0, 14),
+        Parent = searchBox
+    })
+
+    -- Search results container (hidden by default)
+    self._searchResultsFrame = CreateInstance("ScrollingFrame", {
+        Name = "SearchResults",
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60),
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 166, 0, 0),
+        Size = UDim2.new(1, -166, 1, 0),
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollingDirection = Enum.ScrollingDirection.Y,
+        Visible = false,
+        Parent = self.mainContent
+    })
+    CreateListLayout(self._searchResultsFrame, 6, Enum.SortOrder.LayoutOrder)
+    CreatePadding(self._searchResultsFrame, 10, 10, 15, 15)
+
+    -- No results label
+    self._noResultsLabel = CreateInstance("TextLabel", {
+        Name = "NoResults",
+        FontFace = f.Regular,
+        TextColor3 = c.TextDark,
+        Text = "No matching components found",
+        BackgroundTransparency = 1,
+        TextSize = textsize.Normal,
+        Size = UDim2.new(1, 0, 0, 40),
+        Visible = false,
+        Parent = self._searchResultsFrame
+    })
+
+    -- Search logic
+    searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local query = searchBox.Text:lower()
+        if query == "" then
+            -- Clear search: restore normal view
+            self._searchActive = false
+            self._searchResultsFrame.Visible = false
+            self.contentContainer.Visible = true
+            -- Clear search result clones
+            for _, child in ipairs(self._searchResultsFrame:GetChildren()) do
+                if child:IsA("Frame") then
+                    child:Destroy()
+                end
+            end
+            self._noResultsLabel.Visible = false
+            return
+        end
+
+        self._searchActive = true
+        self._searchResultsFrame.Visible = true
+        self.contentContainer.Visible = false
+
+        -- Clear old results
+        for _, child in ipairs(self._searchResultsFrame:GetChildren()) do
+            if child:IsA("Frame") then
+                child:Destroy()
+            end
+        end
+
+        local matchCount = 0
+        for _, elem in ipairs(self._allElements) do
+            if elem.name:lower():find(query, 1, true) then
+                matchCount = matchCount + 1
+                -- Create a result entry
+                local resultFrame = CreateInstance("Frame", {
+                    Name = "Result_" .. elem.name,
+                    BackgroundColor3 = c.Secondary,
+                    BackgroundTransparency = 0.4,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 0, 36),
+                    Parent = self._searchResultsFrame
+                })
+                CreateCorner(resultFrame, 5)
+                CreateStroke(resultFrame)
+
+                CreateInstance("TextLabel", {
+                    Name = "Name",
+                    FontFace = f.Regular,
+                    TextColor3 = c.Text,
+                    Text = elem.name,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, 0),
+                    TextSize = textsize.Normal,
+                    Size = UDim2.new(0.6, -10, 1, 0),
+                    Parent = resultFrame
+                })
+
+                local tabInfo = CreateInstance("TextLabel", {
+                    Name = "TabInfo",
+                    FontFace = f.Regular,
+                    TextColor3 = c.TextDark,
+                    Text = elem.tabName .. " › " .. elem.type,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0.6, 0, 0, 0),
+                    TextSize = textsize.Tiny,
+                    Size = UDim2.new(0.4, -10, 1, 0),
+                    Parent = resultFrame
+                })
+
+                -- Click to jump to that tab
+                local jumpBtn = CreateInstance("TextButton", {
+                    Name = "Jump",
+                    Text = "",
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    Parent = resultFrame
+                })
+
+                jumpBtn.MouseButton1Click:Connect(function()
+                    -- Clear search and jump to tab
+                    searchBox.Text = ""
+                    if elem.selectTab then
+                        elem.selectTab()
+                    end
+                end)
+
+                jumpBtn.MouseEnter:Connect(function()
+                    CreateTween(resultFrame, {BackgroundTransparency = 0.2}, animationspeed.Fast)
+                end)
+                jumpBtn.MouseLeave:Connect(function()
+                    CreateTween(resultFrame, {BackgroundTransparency = 0.4}, animationspeed.Fast)
+                end)
+            end
+        end
+
+        self._noResultsLabel.Visible = (matchCount == 0)
+    end)
+
+    self._searchBox = searchBox
 
     CreateInstance("Frame", {
         Name = "Separator",
@@ -1341,39 +1545,59 @@ function Library._CreateTab(section, name, icon)
 
     local tabMethods = setmetatable({}, {__index = tab})
 
+    -- Helper to register element for search
+    local function registerElement(elemName, elemType)
+        table.insert(section._library._allElements, {
+            name = elemName,
+            type = elemType,
+            tabName = name,
+            selectTab = function()
+                Library._SelectTab(section._library, tab, tabBtn, tabStroke, iconLabel, tabText, textGradient)
+            end
+        })
+    end
+
     function tabMethods:CreateSection(sectionName)
         return Library._CreateContentSection(self, sectionName)
     end
 
     function tabMethods:CreateParagraph(config)
+        registerElement(config.Title or "Paragraph", "Paragraph")
         return Library._CreateParagraph(self, config)
     end
 
     function tabMethods:CreateSlider(config)
+        registerElement(config.Name or "Slider", "Slider")
         return Library._CreateSlider(self, config)
     end
 
     function tabMethods:CreateButton(config)
+        registerElement(config.Name or "Button", "Button")
         return Library._CreateButton(self, config)
     end
 
     function tabMethods:CreateToggle(config)
+        registerElement(config.Name or "Toggle", "Toggle")
         return Library._CreateToggle(self, config)
     end
 
     function tabMethods:CreateDropdown(config)
+        registerElement(config.Name or "Dropdown", "Dropdown")
         return Library._CreateDropdown(self, config)
     end
 
     function tabMethods:CreateKeybind(config)
+        registerElement(config.Name or "Keybind", "Keybind")
         return Library._CreateKeybind(self, config, section._library)
     end
 
     function tabMethods:CreateColorPicker(config)
+        registerElement(config.Name or "ColorPicker", "ColorPicker")
         return Library._CreateColorPicker(self, config)
     end
 
     function tabMethods:CreateTextBox(config)
+        registerElement(config.Name or "TextBox", "TextBox")
         return Library._CreateTextBox(self, config)
     end
 
@@ -1382,10 +1606,14 @@ function Library._CreateTab(section, name, icon)
     end
 
     function tabMethods:CreateLabel(config)
+        registerElement(config.Name or "Label", "Label")
         return Library._CreateLabel(self, config)
     end
 
     function tabMethods:CreateDivider(text)
+        if text and text ~= "" then
+            registerElement(text, "Divider")
+        end
         return Library._CreateDivider(self, text)
     end
 

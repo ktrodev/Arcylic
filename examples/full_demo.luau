@@ -1,16 +1,4 @@
---[[
-    AcrylicUI — Full Demo Example
-    
-    Demonstrates every feature:
-    - All components (Toggle, Slider, Button, Dropdown, Keybind,
-      ColorPicker, TextBox, Label, Divider, Paragraph)
-    - Custom Theme Switching (7 presets)
-    - Live States (FPS, Player Count, Status updates)
-    - Config System (Save/Load/Delete)
-    - Notifications
-    
-    Execute this script in your Roblox executor.
-]]
+
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ktrodev/Arcylic/refs/heads/main/src.lua.txt"))()
 
@@ -409,6 +397,55 @@ themeTab:CreateButton({
     end
 })
 
+themeTab:CreateDivider("Background Image")
+
+local bgImageBox = themeTab:CreateTextBox({
+    Name = "Image Asset ID",
+    Placeholder = "rbxassetid://123456789",
+    Default = "",
+    Callback = function() end
+})
+
+themeTab:CreateButton({
+    Name = "Set Background Image",
+    Callback = function()
+        local imgId = bgImageBox:GetText()
+        if imgId ~= "" then
+            window:SetBackgroundImage(imgId, 0.85)
+            window:Notify({
+                Title = "Background Set",
+                Description = "Image applied behind blur",
+                Duration = 2
+            })
+        end
+    end
+})
+
+themeTab:CreateButton({
+    Name = "Remove Background",
+    Callback = function()
+        window:SetBackgroundImage(nil)
+        window:Notify({
+            Title = "Background Removed",
+            Description = "Reverted to default",
+            Duration = 2
+        })
+    end
+})
+
+themeTab:CreateSlider({
+    Name = "Image Opacity",
+    Min = 0,
+    Max = 100,
+    Default = 85,
+    Callback = function(value)
+        local imgId = bgImageBox:GetText()
+        if imgId ~= "" then
+            window:SetBackgroundImage(imgId, value / 100)
+        end
+    end
+})
+
 -- ============================================================================
 -- Tab 5: Notifications
 -- ============================================================================
@@ -527,15 +564,17 @@ aboutTab:CreateButton({
     API REFERENCE:
     
     WINDOW:
-    window:Toggle()              -- Toggle visibility
-    window:SetToggleKey(keyCode) -- Change toggle key
-    window:SetTheme("Ocean")     -- Switch theme preset
-    window:GetThemeNames()       -- Get available themes
-    window:Notify({...})         -- Show notification
-    window:SaveConfig("name")    -- Save config
-    window:LoadConfig("name")    -- Load config
-    window:DeleteConfig("name")  -- Delete config
-    window:Destroy()             -- Clean up everything
+    window:Toggle()                          -- Toggle visibility
+    window:SetToggleKey(keyCode)             -- Change toggle key
+    window:SetTheme("Ocean")                 -- Switch theme preset
+    window:GetThemeNames()                   -- Get available themes
+    window:SetBackgroundImage(imageId, 0.85) -- Set bg image (0-1 transparency)
+    window:SetBackgroundImage(nil)           -- Remove bg image
+    window:Notify({...})                     -- Show notification
+    window:SaveConfig("name")                -- Save config
+    window:LoadConfig("name")                -- Load config
+    window:DeleteConfig("name")              -- Delete config
+    window:Destroy()                         -- Clean up everything
     
     COMPONENTS:
     toggle:SetValue(true/false)
@@ -545,6 +584,10 @@ aboutTab:CreateButton({
     label:SetText("new text")
     label:SetColor(Color3.new(1,0,0))
     label:GetText()
+    
+    SEARCH:
+    Type in the sidebar search box to filter ALL components
+    across ALL tabs. Click a result to jump to that tab.
     
     THEMES: Dark, Midnight, Ocean, Purple, Red, Emerald, Rose
 ]]
