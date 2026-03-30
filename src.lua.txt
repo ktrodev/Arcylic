@@ -337,7 +337,7 @@ function AcrylicBlur:_CreateRoot()
         Transparency = 0.95, 
         Parent = self._folder
     })
-    CreateInstance("SpecialMesh", {
+    self._mesh = CreateInstance("SpecialMesh", {
         MeshType = Enum.MeshType.Brick,
         Parent = part
     })
@@ -391,7 +391,7 @@ function AcrylicBlur:_Render(distance)
             workspace.CurrentCamera.CFrame.YVector,
             workspace.CurrentCamera.CFrame.ZVector
         )
-        self._root.Mesh.Scale = Vector3.new(width, height, 0)
+        if self._mesh then self._mesh.Scale = Vector3.new(width, height, 0) end
     end
 
     local function OnChange()
@@ -599,12 +599,57 @@ function Library:SetTheme(presetName)
         c[key] = value
     end
     
-    -- Live update window elements
-    if self.container then
-        CreateTween(self.container, { BackgroundColor3 = c.Background }, animationspeed.Normal)
+    -- Recursively recolor every element in the GUI
+    local function recolor(parent)
+        for _, child in ipairs(parent:GetChildren()) do
+            if child:IsA("Frame") then
+                if child.Name == "Container" then
+                    CreateTween(child, { BackgroundColor3 = c.Background }, animationspeed.Normal)
+                elseif child.Name == "Header" or child.Name == "Separator" or child.Name == "Line" or child.Name == "LineLeft" or child.Name == "LineRight" then
+                    child.BackgroundColor3 = c.Border
+                elseif child.Name == "Dot" then
+                    -- skip dots, they have custom colors
+                elseif child.BackgroundTransparency < 0.5 and child.BackgroundColor3 ~= Color3.new(0,0,0) then
+                    CreateTween(child, { BackgroundColor3 = c.Secondary }, animationspeed.Normal)
+                end
+            elseif child:IsA("TextLabel") then
+                if child.Name == "TabText" or child.Name == "Label" or child.Name == "DividerText" then
+                    CreateTween(child, { TextColor3 = c.TextDark }, animationspeed.Normal)
+                elseif child.Name == "Name" or child.Name == "Title" then
+                    CreateTween(child, { TextColor3 = c.Text }, animationspeed.Normal)
+                elseif child.Name == "Value" or child.Name == "Description" or child.Name == "Content" then
+                    -- skip custom-colored values
+                end
+            elseif child:IsA("TextBox") then
+                CreateTween(child, { TextColor3 = c.Text, PlaceholderColor3 = c.TextDark }, animationspeed.Normal)
+            elseif child:IsA("ImageLabel") or child:IsA("ImageButton") then
+                if child.Name == "Icon" or child.Name == "Arrow" or child.Name == "Hamburger" then
+                    CreateTween(child, { ImageColor3 = c.TextDark }, animationspeed.Normal)
+                end
+            elseif child:IsA("UIStroke") then
+                child.Color = c.Border
+            elseif child:IsA("ScrollingFrame") then
+                -- recurse into scrolling frames
+            end
+            recolor(child)
+        end
     end
+    
+    if self.screenGui then
+        recolor(self.screenGui)
+    end
+    
+    -- Update title specifically
     if self.titleLabel then
         CreateTween(self.titleLabel, { TextColor3 = c.Text }, animationspeed.Normal)
+    end
+    
+    -- Update current tab highlight
+    if self.currentTab and self.currentTab.textLabel then
+        self.currentTab.textLabel.TextColor3 = c.Text
+    end
+    if self.currentTab and self.currentTab.icon then
+        self.currentTab.icon.ImageColor3 = c.Text
     end
     
     self:Notify({
