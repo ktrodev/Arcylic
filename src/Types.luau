@@ -1,0 +1,144 @@
+--[[
+    AcrylicUI - Type Definitions
+    Version: 2.2.0
+    Author: AcrylicUI Team
+    
+    Type definitions for strict type checking across the library.
+    This is the single source of truth for all config types.
+]]
+
+export type Color3 = Color3
+export type UDim2 = UDim2
+export type Instance = Instance
+
+export type ThemeColors = {
+    Background: Color3,
+    Secondary: Color3,
+    Border: Color3,
+    Text: Color3,
+    TextDark: Color3,
+    Accent: Color3,
+    Toggle: {
+        Enabled: Color3,
+        Disabled: Color3,
+        Circle: Color3
+    },
+    Notification: {
+        Background: Color3,
+        Border: Color3,
+        Timer: Color3
+    }
+}
+
+export type WindowConfig = {
+    Title: string?,
+    Size: { Width: number, Height: number }?,
+    Position: UDim2?,
+    Theme: ThemeColors?,
+    ToggleKey: Enum.KeyCode?,
+    ConfigFolder: string?
+}
+
+export type ButtonConfig = {
+    Name: string?,
+    Icon: string?,
+    Callback: (() -> ())?
+}
+
+export type ToggleConfig = {
+    Name: string?,
+    Default: boolean?,
+    Flag: string?,
+    Callback: ((enabled: boolean) -> ())?
+}
+
+export type SliderConfig = {
+    Name: string?,
+    Min: number?,
+    Max: number?,
+    Default: number?,
+    Increment: number?,
+    Flag: string?,
+    Callback: ((value: number) -> ())?
+}
+
+export type DropdownConfig = {
+    Name: string?,
+    Options: { string }?,
+    Default: string | { string }?,
+    MultiSelect: boolean?,
+    Flag: string?,
+    Callback: ((selected: string | { string }) -> ())?
+}
+
+export type KeybindConfig = {
+    Name: string?,
+    Default: Enum.KeyCode?,
+    Flag: string?,
+    Callback: (() -> ())?
+}
+
+export type ColorPickerConfig = {
+    Name: string?,
+    Default: Color3?,
+    Flag: string?,
+    Callback: ((color: Color3) -> ())?
+}
+
+export type TextBoxConfig = {
+    Name: string?,
+    Default: string?,
+    Placeholder: string?,
+    ClearOnFocus: boolean?,
+    NumbersOnly: boolean?,
+    Flag: string?,
+    Callback: ((text: string, enterPressed: boolean) -> ())?
+}
+
+export type SearchBarConfig = {
+    Name: string?,
+    Placeholder: string?,
+    Items: { string }?,
+    MaxVisible: number?,
+    Callback: ((filtered: { string }, query: string) -> ())?
+}
+
+export type ProgressBarConfig = {
+    Name: string?,
+    Max: number?,
+    Default: number?,
+    Flag: string?,
+    Callback: ((value: number) -> ())?
+}
+
+export type LabelConfig = {
+    Name: string?,
+    Text: string?,
+    Color: Color3?,
+    Icon: string?
+}
+
+export type ParagraphConfig = {
+    Title: string?,
+    Content: string?
+}
+
+export type NotificationConfig = {
+    Title: string?,
+    Description: string?,
+    Duration: number?,
+    Icon: string?,
+    Type: string? -- "info", "success", "warning", "error"
+}
+
+export type WatermarkConfig = {
+    Text: string?,
+    ShowFPS: boolean?,
+    ShowPing: boolean?,
+    ShowTime: boolean?,
+    Position: string? -- "TopLeft", "TopRight", "BottomLeft", "BottomRight"
+}
+
+export type Connection = RBXScriptConnection
+
+return nil
