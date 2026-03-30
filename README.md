@@ -16,7 +16,7 @@ A modern, feature-rich Roblox UI library with acrylic blur effects, smooth anima
 
 ### Method 1: Loadstring (Recommended)
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/noowtf31-ui/Arcylic/refs/heads/main/src.lua.txt"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ktrodev/Arcylic/refs/heads/main/src.lua.txt"))()
 ```
 
 ### Method 2: Local Module
@@ -29,7 +29,7 @@ local Library = require(game.ReplicatedStorage.AcrylicUI)
 
 ```lua
 -- Load the library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/noowtf31-ui/Arcylic/refs/heads/main/src.lua.txt"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ktrodev/Arcylic/refs/heads/main/src.lua.txt"))()
 
 -- Create the main window
 local window = Library.new("My Hub", "MyHubConfigs")
@@ -515,7 +515,7 @@ This creates:
 
 ```lua
 -- Load library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/noowtf31-ui/Arcylic/refs/heads/main/src.lua.txt"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ktrodev/Arcylic/refs/heads/main/src.lua.txt"))()
 
 -- Create window with config folder
 local window = Library.new("Example Hub", "ExampleHubConfigs")
