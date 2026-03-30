@@ -28,6 +28,66 @@ local c = {
     }
 }
 
+local ThemePresets = {
+    Dark = {
+        Background = Color3.fromRGB(12, 12, 12),
+        Secondary = Color3.fromRGB(20, 20, 20),
+        Border = Color3.fromRGB(39, 39, 39),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextDark = Color3.fromRGB(93, 93, 93),
+        Accent = Color3.fromRGB(255, 255, 255)
+    },
+    Midnight = {
+        Background = Color3.fromRGB(10, 10, 25),
+        Secondary = Color3.fromRGB(18, 18, 40),
+        Border = Color3.fromRGB(35, 35, 70),
+        Text = Color3.fromRGB(220, 220, 255),
+        TextDark = Color3.fromRGB(80, 80, 130),
+        Accent = Color3.fromRGB(100, 130, 255)
+    },
+    Ocean = {
+        Background = Color3.fromRGB(8, 18, 22),
+        Secondary = Color3.fromRGB(14, 28, 35),
+        Border = Color3.fromRGB(30, 55, 65),
+        Text = Color3.fromRGB(200, 240, 255),
+        TextDark = Color3.fromRGB(70, 120, 140),
+        Accent = Color3.fromRGB(50, 190, 220)
+    },
+    Purple = {
+        Background = Color3.fromRGB(15, 10, 20),
+        Secondary = Color3.fromRGB(25, 18, 35),
+        Border = Color3.fromRGB(50, 35, 65),
+        Text = Color3.fromRGB(240, 220, 255),
+        TextDark = Color3.fromRGB(110, 80, 140),
+        Accent = Color3.fromRGB(160, 80, 255)
+    },
+    Red = {
+        Background = Color3.fromRGB(18, 10, 10),
+        Secondary = Color3.fromRGB(30, 18, 18),
+        Border = Color3.fromRGB(60, 30, 30),
+        Text = Color3.fromRGB(255, 220, 220),
+        TextDark = Color3.fromRGB(140, 80, 80),
+        Accent = Color3.fromRGB(255, 70, 70)
+    },
+    Emerald = {
+        Background = Color3.fromRGB(8, 18, 12),
+        Secondary = Color3.fromRGB(14, 28, 20),
+        Border = Color3.fromRGB(30, 55, 40),
+        Text = Color3.fromRGB(210, 255, 230),
+        TextDark = Color3.fromRGB(70, 130, 90),
+        Accent = Color3.fromRGB(50, 220, 120)
+    },
+    Rose = {
+        Background = Color3.fromRGB(18, 10, 14),
+        Secondary = Color3.fromRGB(30, 18, 24),
+        Border = Color3.fromRGB(60, 30, 45),
+        Text = Color3.fromRGB(255, 220, 235),
+        TextDark = Color3.fromRGB(140, 80, 110),
+        Accent = Color3.fromRGB(255, 90, 160)
+    }
+}
+
+
 local s = {
     v0rtexd = {Width = 690, Height = 446},
     Minv0rtexd = {Width = 500, Height = 300},
@@ -526,6 +586,41 @@ end
 
 function Library:SetToggleKey(keyCode)
     self._toggleKey = keyCode
+end
+
+function Library:SetTheme(presetName)
+    local theme = ThemePresets[presetName]
+    if not theme then
+        self:Notify({ Title = "Error", Description = "Unknown theme: " .. tostring(presetName), Duration = 2 })
+        return
+    end
+    
+    for key, value in pairs(theme) do
+        c[key] = value
+    end
+    
+    -- Live update window elements
+    if self.container then
+        CreateTween(self.container, { BackgroundColor3 = c.Background }, animationspeed.Normal)
+    end
+    if self.titleLabel then
+        CreateTween(self.titleLabel, { TextColor3 = c.Text }, animationspeed.Normal)
+    end
+    
+    self:Notify({
+        Title = "Theme Applied",
+        Description = presetName,
+        Duration = 2
+    })
+end
+
+function Library:GetThemeNames()
+    local names = {}
+    for name in pairs(ThemePresets) do
+        table.insert(names, name)
+    end
+    table.sort(names)
+    return names
 end
 
 function Library:_SetupMobileSupport()
@@ -1239,6 +1334,14 @@ function Library._CreateTab(section, name, icon)
 
     function tabMethods:CreateConfigSection()
         return Library._CreateConfigSection(self)
+    end
+
+    function tabMethods:CreateLabel(config)
+        return Library._CreateLabel(self, config)
+    end
+
+    function tabMethods:CreateDivider(text)
+        return Library._CreateDivider(self, text)
     end
 
     return tabMethods
@@ -2481,6 +2584,142 @@ function Library._CreateConfigSection(tab)
     return {
         RefreshConfigs = function()
             configDropdown:Refresh(lib:GetConfigs())
+        end
+    }
+end
+
+function Library._CreateLabel(tab, config)
+    local name = config.Name or "Label"
+    local text = config.Text or ""
+    local color = config.Color or c.Text
+
+    local frame = CreateInstance("Frame", {
+        Name = "Label_" .. name,
+        BackgroundColor3 = c.Secondary,
+        BackgroundTransparency = 0.4,
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0, s.Button.Height),
+        Parent = tab.content
+    })
+    CreateCorner(frame, 5)
+    CreateStroke(frame)
+
+    local nameLabel = CreateInstance("TextLabel", {
+        Name = "Name",
+        FontFace = f.Regular,
+        TextColor3 = c.Text,
+        Text = name,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 10, 0.5, -10),
+        TextSize = textsize.Normal,
+        Size = UDim2.new(0, 150, 0, 20),
+        Parent = frame
+    })
+
+    local dot = CreateInstance("Frame", {
+        Name = "Dot",
+        BackgroundColor3 = color,
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -10, 0.5, 0),
+        Size = UDim2.new(0, 8, 0, 8),
+        BorderSizePixel = 0,
+        Parent = frame
+    })
+    CreateCorner(dot, 4)
+
+    local valueLabel = CreateInstance("TextLabel", {
+        Name = "Value",
+        FontFace = f.Regular,
+        TextColor3 = color,
+        Text = text,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -24, 0.5, 0),
+        TextSize = textsize.Small,
+        Size = UDim2.new(0, 150, 0, 20),
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = frame
+    })
+
+    return {
+        SetText = function(_, newText)
+            valueLabel.Text = newText
+        end,
+        GetText = function()
+            return valueLabel.Text
+        end,
+        SetColor = function(_, newColor)
+            CreateTween(valueLabel, { TextColor3 = newColor }, animationspeed.Fast)
+            CreateTween(dot, { BackgroundColor3 = newColor }, animationspeed.Fast)
+        end,
+        SetVisible = function(_, visible)
+            frame.Visible = visible
+        end,
+        Destroy = function()
+            frame:Destroy()
+        end
+    }
+end
+
+function Library._CreateDivider(tab, text)
+    local frame = CreateInstance("Frame", {
+        Name = "Divider",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, (text and text ~= "") and 22 or 12),
+        Parent = tab.content
+    })
+
+    if text and text ~= "" then
+        CreateInstance("Frame", {
+            Name = "LineLeft",
+            BackgroundColor3 = c.Border,
+            AnchorPoint = Vector2.new(0, 0.5),
+            Position = UDim2.new(0, 0, 0.5, 0),
+            Size = UDim2.new(0.3, -5, 0, 1),
+            BorderSizePixel = 0,
+            Parent = frame
+        })
+
+        CreateInstance("TextLabel", {
+            Name = "DividerText",
+            FontFace = f.Regular,
+            TextColor3 = c.TextDark,
+            Text = text,
+            BackgroundTransparency = 1,
+            TextSize = textsize.Tiny,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(0.4, 0, 1, 0),
+            TextXAlignment = Enum.TextXAlignment.Center,
+            Parent = frame
+        })
+
+        CreateInstance("Frame", {
+            Name = "LineRight",
+            BackgroundColor3 = c.Border,
+            AnchorPoint = Vector2.new(1, 0.5),
+            Position = UDim2.new(1, 0, 0.5, 0),
+            Size = UDim2.new(0.3, -5, 0, 1),
+            BorderSizePixel = 0,
+            Parent = frame
+        })
+    else
+        CreateInstance("Frame", {
+            Name = "Line",
+            BackgroundColor3 = c.Border,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(1, -20, 0, 1),
+            BorderSizePixel = 0,
+            Parent = frame
+        })
+    end
+
+    return {
+        Destroy = function()
+            frame:Destroy()
         end
     }
 end

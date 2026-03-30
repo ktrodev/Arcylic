@@ -1,17 +1,14 @@
 --[[
     AcrylicUI — Full Demo Example
     
-    This example demonstrates every feature of the AcrylicUI library
-    using the loadstring-compatible bundled version (src.lua.txt).
-    
-    Components shown:
-    - Toggle, Slider, Button, Dropdown
-    - Keybind, ColorPicker, TextBox
-    - Paragraph, Section Headers
+    Demonstrates every feature:
+    - All components (Toggle, Slider, Button, Dropdown, Keybind,
+      ColorPicker, TextBox, Label, Divider, Paragraph)
+    - Custom Theme Switching (7 presets)
+    - Live States (FPS, Player Count, Status updates)
     - Config System (Save/Load/Delete)
     - Notifications
     
-    Usage:
     Execute this script in your Roblox executor.
 ]]
 
@@ -26,8 +23,8 @@ local window = Library.new("AcrylicUI Demo", "AcrylicDemoConfigs")
 -- Welcome notification
 window:Notify({
     Title = "Welcome!",
-    Description = "AcrylicUI Demo loaded successfully",
-    Duration = 4
+    Description = "AcrylicUI Demo loaded",
+    Duration = 3
 })
 
 -- ============================================================================
@@ -42,10 +39,8 @@ local combatSection = window:CreateSection("Combat")
 
 local aimbotTab = combatSection:CreateTab("Aimbot", "rbxassetid://10723407389")
 
--- Section header
 aimbotTab:CreateSection("General")
 
--- Toggle
 local aimbotToggle = aimbotTab:CreateToggle({
     Name = "Enable Aimbot",
     Default = false,
@@ -55,7 +50,6 @@ local aimbotToggle = aimbotTab:CreateToggle({
     end
 })
 
--- Slider
 local fovSlider = aimbotTab:CreateSlider({
     Name = "FOV Range",
     Min = 10,
@@ -67,7 +61,6 @@ local fovSlider = aimbotTab:CreateSlider({
     end
 })
 
--- Dropdown (single select)
 aimbotTab:CreateDropdown({
     Name = "Target Part",
     Options = { "Head", "HumanoidRootPart", "Torso", "Random" },
@@ -78,7 +71,6 @@ aimbotTab:CreateDropdown({
     end
 })
 
--- Keybind
 aimbotTab:CreateKeybind({
     Name = "Toggle Key",
     Default = Enum.KeyCode.F,
@@ -88,9 +80,8 @@ aimbotTab:CreateKeybind({
     end
 })
 
-aimbotTab:CreateSection("Advanced")
+aimbotTab:CreateDivider("Advanced")
 
--- Dropdown (multi-select)
 aimbotTab:CreateDropdown({
     Name = "Ignore Teams",
     Options = { "Team 1", "Team 2", "Team 3", "Team 4" },
@@ -104,7 +95,6 @@ aimbotTab:CreateDropdown({
     end
 })
 
--- Slider
 aimbotTab:CreateSlider({
     Name = "Smoothness",
     Min = 1,
@@ -116,7 +106,6 @@ aimbotTab:CreateSlider({
     end
 })
 
--- Toggle
 aimbotTab:CreateToggle({
     Name = "Prediction",
     Default = false,
@@ -126,7 +115,6 @@ aimbotTab:CreateToggle({
     end
 })
 
--- Reset button
 aimbotTab:CreateButton({
     Name = "Reset to Default",
     Callback = function()
@@ -141,57 +129,10 @@ aimbotTab:CreateButton({
 })
 
 -- ============================================================================
--- Tab 2: Silent Aim
+-- Tab 2: ESP (Visuals)
 -- ============================================================================
 
-local silentTab = combatSection:CreateTab("Silent Aim", "rbxassetid://10734898355")
-
-silentTab:CreateToggle({
-    Name = "Enable Silent Aim",
-    Default = false,
-    Flag = "SilentEnabled",
-    Callback = function(enabled)
-        print("Silent Aim:", enabled)
-    end
-})
-
-silentTab:CreateSlider({
-    Name = "Hit Chance (%)",
-    Min = 0,
-    Max = 100,
-    Default = 100,
-    Flag = "SilentHitChance",
-    Callback = function(value)
-        print("Hit chance:", value .. "%")
-    end
-})
-
-silentTab:CreateDropdown({
-    Name = "Priority",
-    Options = { "Closest", "Lowest HP", "Highest Threat", "Random" },
-    Default = "Closest",
-    Flag = "SilentPriority",
-    Callback = function(selected)
-        print("Priority:", selected)
-    end
-})
-
-silentTab:CreateParagraph({
-    Title = "How it works",
-    Content = "Silent aim redirects your projectiles to the nearest valid target without visually changing your crosshair position."
-})
-
--- ============================================================================
--- Section: Visuals  
--- ============================================================================
-
-local visualSection = window:CreateSection("Visuals")
-
--- ============================================================================
--- Tab 3: ESP
--- ============================================================================
-
-local espTab = visualSection:CreateTab("ESP")
+local espTab = combatSection:CreateTab("ESP", "rbxassetid://10734898355")
 
 espTab:CreateToggle({
     Name = "Enable ESP",
@@ -202,7 +143,6 @@ espTab:CreateToggle({
     end
 })
 
--- Color Picker
 espTab:CreateColorPicker({
     Name = "ESP Color",
     Default = Color3.fromRGB(255, 0, 0),
@@ -212,7 +152,7 @@ espTab:CreateColorPicker({
     end
 })
 
-espTab:CreateSection("Display Options")
+espTab:CreateDivider("Display Options")
 
 espTab:CreateToggle({
     Name = "Show Names",
@@ -235,7 +175,6 @@ espTab:CreateToggle({
     Callback = function(val) print("Distance:", val) end
 })
 
--- TextBox (numbers only)
 espTab:CreateTextBox({
     Name = "Max Distance",
     Default = "500",
@@ -247,7 +186,6 @@ espTab:CreateTextBox({
     end
 })
 
--- TextBox (text input)
 espTab:CreateTextBox({
     Name = "Whitelist Player",
     Placeholder = "Enter username...",
@@ -255,15 +193,175 @@ espTab:CreateTextBox({
     Flag = "WhitelistPlayer",
     Callback = function(text, enterPressed)
         if enterPressed then
-            print("Whitelisted:", text)
             window:Notify({
-                Title = "Player Added",
-                Description = text .. " added to whitelist",
+                Title = "Whitelisted",
+                Description = text .. " added",
                 Duration = 2
             })
         end
     end
 })
+
+-- ============================================================================
+-- Section: Info & Status
+-- ============================================================================
+
+local infoSection = window:CreateSection("Info")
+
+-- ============================================================================
+-- Tab 3: Live States
+-- ============================================================================
+
+local statesTab = infoSection:CreateTab("Live Status")
+
+statesTab:CreateSection("Server Info")
+
+-- Live FPS counter
+local fpsLabel = statesTab:CreateLabel({
+    Name = "FPS",
+    Text = "...",
+    Color = Color3.fromRGB(80, 200, 120)
+})
+
+-- Live player count
+local playerLabel = statesTab:CreateLabel({
+    Name = "Players",
+    Text = "...",
+    Color = Color3.fromRGB(100, 180, 255)
+})
+
+-- Live ping
+local pingLabel = statesTab:CreateLabel({
+    Name = "Ping",
+    Text = "...",
+    Color = Color3.fromRGB(255, 200, 80)
+})
+
+-- Server uptime
+local uptimeLabel = statesTab:CreateLabel({
+    Name = "Uptime",
+    Text = "0s",
+    Color = Color3.fromRGB(180, 160, 255)
+})
+
+statesTab:CreateDivider("Script Status")
+
+-- Connection status
+local statusLabel = statesTab:CreateLabel({
+    Name = "Status",
+    Text = "Active",
+    Color = Color3.fromRGB(80, 200, 120)
+})
+
+-- Feature states
+local featureLabel = statesTab:CreateLabel({
+    Name = "Active Features",
+    Text = "0 enabled",
+    Color = Color3.fromRGB(200, 200, 200)
+})
+
+statesTab:CreateDivider()
+
+statesTab:CreateButton({
+    Name = "Toggle Status",
+    Callback = function()
+        if statusLabel:GetText() == "Active" then
+            statusLabel:SetText("Paused")
+            statusLabel:SetColor(Color3.fromRGB(255, 80, 80))
+        else
+            statusLabel:SetText("Active")
+            statusLabel:SetColor(Color3.fromRGB(80, 200, 120))
+        end
+    end
+})
+
+statesTab:CreateParagraph({
+    Title = "Live Updates",
+    Content = "The labels above update in real-time.\nFPS and ping are refreshed every 0.5 seconds.\nPlayer count updates when someone joins or leaves."
+})
+
+-- ============================================================================
+-- Live update loop
+-- ============================================================================
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Stats = game:GetService("Stats")
+
+-- FPS tracker
+local frameCount = 0
+local lastFPSUpdate = os.clock()
+local startTime = os.clock()
+
+local fpsConnection = RunService.RenderStepped:Connect(function()
+    frameCount = frameCount + 1
+    local now = os.clock()
+    
+    if now - lastFPSUpdate >= 0.5 then
+        -- Update FPS
+        local fps = math.floor(frameCount / (now - lastFPSUpdate))
+        fpsLabel:SetText(tostring(fps) .. " FPS")
+        
+        if fps >= 50 then
+            fpsLabel:SetColor(Color3.fromRGB(80, 200, 120))
+        elseif fps >= 30 then
+            fpsLabel:SetColor(Color3.fromRGB(255, 200, 80))
+        else
+            fpsLabel:SetColor(Color3.fromRGB(255, 80, 80))
+        end
+        
+        -- Update ping
+        local success, ping = pcall(function()
+            return math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        end)
+        if success then
+            pingLabel:SetText(tostring(ping) .. "ms")
+            if ping < 80 then
+                pingLabel:SetColor(Color3.fromRGB(80, 200, 120))
+            elseif ping < 150 then
+                pingLabel:SetColor(Color3.fromRGB(255, 200, 80))
+            else
+                pingLabel:SetColor(Color3.fromRGB(255, 80, 80))
+            end
+        end
+        
+        -- Update player count
+        local playerCount = #Players:GetPlayers()
+        local maxPlayers = Players.MaxPlayers
+        playerLabel:SetText(tostring(playerCount) .. "/" .. tostring(maxPlayers))
+        
+        -- Update uptime
+        local elapsed = math.floor(now - startTime)
+        local mins = math.floor(elapsed / 60)
+        local secs = elapsed % 60
+        if mins > 0 then
+            uptimeLabel:SetText(tostring(mins) .. "m " .. tostring(secs) .. "s")
+        else
+            uptimeLabel:SetText(tostring(secs) .. "s")
+        end
+        
+        frameCount = 0
+        lastFPSUpdate = now
+    end
+end)
+
+-- Player count change listener
+Players.PlayerAdded:Connect(function(player)
+    local count = #Players:GetPlayers()
+    playerLabel:SetText(tostring(count) .. "/" .. tostring(Players.MaxPlayers))
+    window:Notify({
+        Title = "Player Joined",
+        Description = player.Name .. " joined the server",
+        Duration = 2
+    })
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    task.defer(function()
+        local count = #Players:GetPlayers()
+        playerLabel:SetText(tostring(count) .. "/" .. tostring(Players.MaxPlayers))
+    end)
+end)
 
 -- ============================================================================
 -- Section: Settings
@@ -272,14 +370,54 @@ espTab:CreateTextBox({
 local settingsSection = window:CreateSection("Settings")
 
 -- ============================================================================
--- Tab 4: Notifications Demo
+-- Tab 4: Themes
+-- ============================================================================
+
+local themeTab = settingsSection:CreateTab("Themes")
+
+themeTab:CreateSection("Theme Preset")
+
+themeTab:CreateDropdown({
+    Name = "Select Theme",
+    Options = window:GetThemeNames(),
+    Default = "Dark",
+    Callback = function(selected)
+        window:SetTheme(selected)
+    end
+})
+
+themeTab:CreateDivider("Available Themes")
+
+themeTab:CreateParagraph({
+    Title = "Theme Presets",
+    Content = "Dark — Pure dark (default)\nMidnight — Deep blue-purple night\nOcean — Teal-cyan deep sea\nPurple — Rich violet\nRed — Crimson dark\nEmerald — Forest green\nRose — Pink-magenta"
+})
+
+themeTab:CreateDivider()
+
+themeTab:CreateButton({
+    Name = "Cycle All Themes",
+    Callback = function()
+        local themes = window:GetThemeNames()
+        task.spawn(function()
+            for _, theme in ipairs(themes) do
+                window:SetTheme(theme)
+                task.wait(1.5)
+            end
+            window:SetTheme("Dark")
+        end)
+    end
+})
+
+-- ============================================================================
+-- Tab 5: Notifications
 -- ============================================================================
 
 local notifTab = settingsSection:CreateTab("Notifications")
 
 notifTab:CreateParagraph({
     Title = "Notification System",
-    Content = "AcrylicUI includes a built-in notification system. Click the buttons below to test different notification styles."
+    Content = "Test different notification styles below."
 })
 
 notifTab:CreateButton({
@@ -297,8 +435,8 @@ notifTab:CreateButton({
     Name = "Long Notification",
     Callback = function()
         window:Notify({
-            Title = "Important Update",
-            Description = "This notification lasts longer",
+            Title = "Important",
+            Description = "This one lasts longer!",
             Duration = 6
         })
     end
@@ -309,19 +447,19 @@ notifTab:CreateButton({
     Callback = function()
         window:Notify({
             Title = "Quick!",
-            Description = "This disappears fast",
+            Description = "Gone in a flash",
             Duration = 1.5
         })
     end
 })
 
 notifTab:CreateButton({
-    Name = "Spam Test (5 at once)",
+    Name = "Spam Test (5x)",
     Callback = function()
         for i = 1, 5 do
             window:Notify({
                 Title = "Notification #" .. i,
-                Description = "Testing notification stacking",
+                Description = "Testing stacking",
                 Duration = 3
             })
         end
@@ -329,83 +467,84 @@ notifTab:CreateButton({
 })
 
 -- ============================================================================
--- Tab 5: Config Management
+-- Tab 6: Config
 -- ============================================================================
 
 local configTab = settingsSection:CreateTab("Config")
 
--- Pre-built config section with Save/Load/Delete/Refresh/AutoSave
 configTab:CreateConfigSection()
 
 configTab:CreateParagraph({
     Title = "Config System",
-    Content = "All components with a 'Flag' are automatically saved.\nUse the controls above to manage your configurations.\nConfigs are stored as JSON files in AcrylicConfigs/."
+    Content = "All components with a 'Flag' are auto-saved.\nUse controls above to manage configurations.\nStored as JSON in AcrylicConfigs/."
 })
 
 -- ============================================================================
--- Tab 6: About
+-- Tab 7: About
 -- ============================================================================
 
 local aboutTab = settingsSection:CreateTab("About")
 
 aboutTab:CreateParagraph({
     Title = "AcrylicUI",
-    Content = "A modern Roblox UI library with glassmorphism,\nsmooth animations, and a built-in config system.\n\nVersion: 2.0.0\nToggle Key: Right Control"
+    Content = "A modern Roblox UI library with:\n• Glassmorphism & acrylic blur\n• 7 built-in theme presets\n• Live status labels\n• Config save/load system\n• Smooth animations\n• Mobile support"
 })
 
-aboutTab:CreateButton({
-    Name = "Toggle Key: RightControl",
-    Callback = function()
-        window:Notify({
-            Title = "Toggle Key",
-            Description = "Press Right Control to show/hide the UI",
-            Duration = 3
-        })
-    end
+aboutTab:CreateDivider("Controls")
+
+aboutTab:CreateLabel({
+    Name = "Toggle Key",
+    Text = "Right Control",
+    Color = Color3.fromRGB(180, 180, 255)
 })
+
+aboutTab:CreateLabel({
+    Name = "Version",
+    Text = "v2.2.0",
+    Color = Color3.fromRGB(80, 200, 120)
+})
+
+aboutTab:CreateDivider()
 
 aboutTab:CreateButton({
     Name = "Destroy UI",
     Callback = function()
         window:Notify({
             Title = "Goodbye!",
-            Description = "UI will close in 2 seconds...",
+            Description = "Closing in 2 seconds...",
             Duration = 2
         })
         task.delay(2, function()
+            if fpsConnection then
+                fpsConnection:Disconnect()
+            end
             window:Destroy()
         end)
     end
 })
 
 --[[
-    NOTES:
-    
-    KEYBOARD SHORTCUTS:
-    - RightControl: Toggle window visibility
-    - Any keybind you set: Triggers the callback
-    
-    CONFIG SYSTEM:
-    All components with a "Flag" field are automatically tracked.
-    Use the Config tab to save/load/delete configurations.
-    Configs are stored as JSON files in AcrylicConfigs/.
-    
-    MOBILE:
-    A draggable toggle button appears on mobile devices.
-    Drag it around the screen, tap to show/hide the UI.
-    
     API REFERENCE:
+    
+    WINDOW:
     window:Toggle()              -- Toggle visibility
     window:SetToggleKey(keyCode) -- Change toggle key
-    window:SaveConfig("name")   -- Save config
-    window:LoadConfig("name")   -- Load config
-    window:DeleteConfig("name") -- Delete config
-    window:GetConfigs()          -- List saved configs
-    window:SetAutoSave(true)     -- Enable auto-save (30s)
+    window:SetTheme("Ocean")     -- Switch theme preset
+    window:GetThemeNames()       -- Get available themes
     window:Notify({...})         -- Show notification
+    window:SaveConfig("name")    -- Save config
+    window:LoadConfig("name")    -- Load config
+    window:DeleteConfig("name")  -- Delete config
     window:Destroy()             -- Clean up everything
     
+    COMPONENTS:
     toggle:SetValue(true/false)
     slider:SetValue(50)
     dropdown:SetValue("Head")
+    textBox:SetText("hello")
+    label:SetText("new text")
+    label:SetColor(Color3.new(1,0,0))
+    label:GetText()
+    
+    THEMES: Dark, Midnight, Ocean, Purple, Red, Emerald, Rose
 ]]
